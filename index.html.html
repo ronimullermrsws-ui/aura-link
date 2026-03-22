@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURA-LINK | Super Interface + AI</title>
+
+<style>
+:root { --blue:#00d2ff; --purple:#9d00ff; --bg:#05060b; }
+body{ margin:0; font-family:Segoe UI,sans-serif; background:radial-gradient(circle at center,#0a0f1f,#05060b); color:white; overflow-x:hidden; }
+canvas{ position:fixed; top:0; left:0; z-index:-1; }
+.container{ max-width:1000px; margin:auto; padding:60px 20px; }
+
+@keyframes pulse{ 0%{text-shadow:0 0 10px var(--blue);} 50%{text-shadow:0 0 30px var(--purple);} 100%{text-shadow:0 0 10px var(--blue);} }
+
+h1{ text-align:center; font-size:4rem; letter-spacing:10px; background:linear-gradient(to right,var(--blue),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:pulse 3s infinite; }
+.sub{ text-align:center; color:#888; letter-spacing:5px; margin-bottom:50px; }
+
+.section{ background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); padding:25px; border-radius:15px; margin-bottom:50px; backdrop-filter:blur(10px); transition:0.4s; }
+.section:hover{ transform:translateY(-8px) scale(1.02); border-color:var(--blue); }
+
+h2{ background:linear-gradient(to right,#fff,#777); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+p{ color:#aaa; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+.box{ padding:15px; border-radius:10px; background:rgba(255,255,255,0.04); transition:0.3s; }
+.box:hover{ transform:scale(1.05); box-shadow:0 0 15px var(--purple); }
+.box h4{ color:var(--blue); margin:0; }
+
+.terminal{ background:black; padding:15px; font-family:monospace; color:#00ff88; margin-top:20px; border-radius:10px; height:120px; overflow:hidden; }
+
+/* REVEAL */
+.reveal{ margin-top:20px; border:1px solid rgba(0,210,255,0.3); padding:12px; text-align:center; cursor:pointer; border-radius:8px; background:rgba(0,210,255,0.05); position:relative; overflow:hidden; transition:0.3s; }
+.reveal:hover{ background:rgba(0,210,255,0.12); box-shadow:0 0 15px rgba(0,210,255,0.4); }
+.reveal::before{ content:""; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); transition:0.5s; }
+.reveal:hover::before{ left:100%; }
+.hidden{ max-height:0; overflow:hidden; color:#00ff88; margin-top:10px; font-family:monospace; transition:max-height 0.4s ease, opacity 0.4s ease; opacity:0; }
+.reveal.active .hidden{ max-height:120px; opacity:1; }
+
+/* AI PANEL */
+.ai-box{ background:#000; border-radius:12px; padding:15px; font-family:monospace; }
+#chat{ height:220px; overflow-y:auto; color:#00ff88; margin-bottom:10px; }
+.input-row{ display:flex; }
+.input-row input{ flex:1; padding:10px; background:#111; border:none; color:#fff; }
+.input-row button{ background:var(--blue); border:none; padding:10px 14px; cursor:pointer; }
+.user{ color:#0ff; }
+.bot{ color:#0f0; }
+
+footer{ text-align:center; opacity:0.5; margin-top:50px; letter-spacing:4px; }
+</style>
+</head>
+
+<body>
+<canvas id="bg"></canvas>
+
+<div class="container">
+<h1>AURA LINK</h1>
+<div class="sub">MISSION INTERFACE</div>
+
+<div class="section">
+<h2>POWER CORE</h2>
+<p>Power stability achieved under extreme load conditions.</p>
+<div class="grid">
+<div class="box"><h4>REGULATOR</h4><p>AMS1117 3.3V</p></div>
+<div class="box"><h4>BUFFER</h4><p>1000µF capacitor</p></div>
+</div>
+<div class="reveal" onclick="toggle(this)">DECLASSIFY<div class="hidden">Brownout errors eliminated.</div></div>
+</div>
+
+<div class="section">
+<h2>GPS SYSTEM</h2>
+<p>Live tracking with satellite acquisition.</p>
+<div class="reveal" onclick="toggle(this)">DECLASSIFY<div class="hidden">Cold start lock achieved.</div></div>
+</div>
+
+<div class="section">
+<h2>MOTION ENGINE</h2>
+<p>Precision control with optimized motor logic.</p>
+<div class="grid">
+<div class="box"><h4>SONAR</h4><p>Obstacle detection</p></div>
+<div class="box"><h4>MOTORS</h4><p>N20 high torque</p></div>
+</div>
+</div>
+
+<div class="section">
+<h2>LIVE SYSTEM LOG</h2>
+<div class="terminal" id="terminal"></div>
+</div>
+
+<!-- AI SECTION -->
+<div class="section">
+<h2>AURA AI TERMINAL</h2>
+<div class="ai-box">
+<div id="chat"></div>
+<div class="input-row">
+<input id="input" placeholder="> Ask anything about AURA-LINK..." onkeypress="if(event.key==='Enter')send()">
+<button onclick="send()">SEND</button>
+</div>
+</div>
+</div>
+
+<footer>AURA-LINK // RONI // 2026</footer>
+</div>
+
+<script>
+/* PARTICLES */
+const canvas=document.getElementById('bg');
+const ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+let particles=[]; for(let i=0;i<80;i++){ particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2}); }
+function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle='white'; ctx.fill(); p.y+=0.3; if(p.y>canvas.height)p.y=0; }); requestAnimationFrame(draw);} draw();
+
+/* TERMINAL EFFECT */
+const lines=["> Booting AURA-LINK...","> Initializing modules...","> Power stable ✔","> GPS lock acquired ✔","> Motors ready ✔","> System ONLINE"];
+let i=0; function type(){ if(i<lines.length){ document.getElementById('terminal').innerHTML+=lines[i]+"<br>"; i++; setTimeout(type,800);} } type();
+
+function toggle(el){ el.classList.toggle('active'); }
+
+/* AURA AI (broader answers) */
+function auraReply(q){
+ q=q.toLowerCase();
+
+ if(q.includes('power')||q.includes('battery')||q.includes('voltage')) return 'AURA uses AMS1117 3.3V regulation with capacitor buffering to prevent brownouts under load.';
+ if(q.includes('gps')||q.includes('location')||q.includes('track')) return 'Neo-6M GPS module provides real-time tracking with satellite lock capability.';
+ if(q.includes('motor')||q.includes('movement')||q.includes('drive')) return 'System uses TB6612FNG driver with N20 high torque motors for precise motion.';
+ if(q.includes('sensor')||q.includes('distance')||q.includes('obstacle')) return 'HC-SR04 sonar sensor enables obstacle detection and auto braking.';
+ if(q.includes('what')||q.includes('about')) return 'AURA-LINK is an integrated robotics system combining power control, GPS tracking, and motion intelligence.';
+ if(q.includes('who')||q.includes('you')) return 'I am AURA, your system assistant.';
+
+ return 'AURA: That query is outside current dataset. Try asking about power, GPS, motors, sensors, or system.';
+}
+
+function send(){
+ let input=document.getElementById('input');
+ let chat=document.getElementById('chat');
+ let q=input.value.trim();
+ if(!q) return;
+ chat.innerHTML+=`<div class='user'>> YOU: ${q}</div>`;
+ setTimeout(()=>{
+  let res=auraReply(q);
+  chat.innerHTML+=`<div class='bot'>> ${res}</div>`;
+  chat.scrollTop=chat.scrollHeight;
+ },400);
+ input.value='';
+}
+</script>
+
+</body>
+</html>
